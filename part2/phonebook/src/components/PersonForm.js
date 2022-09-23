@@ -1,8 +1,6 @@
 import React from 'react'
 
 const PersonForm = ({addPhone, newName, newNumber,handleNameChange, handlePhoneChange }) => {
-
-
   
   return (
     <div>
