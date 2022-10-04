@@ -1,0 +1,51 @@
+.App {
+  text-align: center;
+}
+
+.titulo1 {
+  color: blue;
+  font-size: 28px;
+}
+
+.titulo2 {
+  color: rgb(25, 99, 189);
+  font-size: 25px;
+}
+
+h3 {
+  color: rgb(55, 227, 201);
+}
+form {
+  color: rgb(55, 227, 201);
+}
+form button {
+  background-color: aquamarine;
+  border: grey solid 3px;
+
+}
+
+.error {
+   
+  background: lightgrey;
+  font-size: 20px;
+  border-style: solid;
+  border-radius: 5px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.personlist {
+  list-style: "→ ";
+  color: rgb(45, 182, 228);
+  font-weight: 600;
+  padding-top: 3px;
+  font-size: 16px;
+}
+
+.filterbox {
+ color: blue;
+}
+
+.msgfilter{
+  color: crimson;
+}

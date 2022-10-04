@@ -1,175 +1,153 @@
+import React, { useState, useEffect } from 'react'
+import './App.css'
 
-import { useEffect, useState } from "react";
-import Filter from "./components/Filter";
-import PersonForm from "./components/PersonForm";
-import Person from "./components/Person";
-import Notification from "./components/Notification";
+import Filter from './components/Filter'
+import Notification from './components/Notification'
+import PersonForm from './components/PersonForm'
+import Persons from './components/Persons'
+import personService from './services/phonebook'
 
-import phonebkService from './services/phonebook'
 
-import './index.css'
-
-function App() {
-
-  const [persons, setPersons] = useState([])  
-  const [newName, setNewName] = useState('')
-  const [newNumber, setNewNumber] = useState('')
+const App = () => {
+  const [ persons, setPersons ] = useState([]) 
+  const [ newName, setNewName ] = useState('')
+  const [ newNumber, setNewNumber ] = useState('')
   const [message, setMessage] = useState(null)
   const [typeMessage, setTypeMessage] = useState(null)
+  
 
-  useEffect(() => {    
-    phonebkService
+  useEffect(() => {
+    
+    personService
       .getAll()
-      .then( initialPhones => {
-        setPersons(initialPhones)        
-       })
+      .then( initialPersons => {
+        setPersons(initialPersons)
+      })
   }, [])
   
+  const maxId = () => {
+    const lastId = Math.max( ...persons.map(p => p.id) ) + 1
+    return lastId
+  }
   
-  const addPhone = (event) => {
-    event.preventDefault()
+  const add = (e) => {
+    e.preventDefault()
 
-    const newContact = {
+    if (newName ==='' || newNumber === '') {
+      return alert('You must enter the fields name and number')
+    }
+
+    const newPerson = {
       name: newName,
-      number: newNumber
+      number: newNumber,
+      id: maxId()
     }
 
-    const contact = persons.find( p => p.name.toLowerCase() === newName.toLowerCase())
-    
-    if ( !contact ) {
-      createContact(newContact)
-    }
-    else
-    {
-      const msgtext = `${newName} is already added to phonebook, replace the old number with a new one?`
-      const confirm = window.confirm(msgtext)
+    const exist = persons.find( p => p.name.toLowerCase() === newName.toLowerCase())
 
-      if (confirm) {        
-        updateContact(contact.id, newContact)   
-        
-        const arrayContact = persons.map( p => {
-          var obj = {...p}
-
-          if (p.id === contact.id) {
-            obj.number = newNumber
-          }
-          return obj;
-        } )
-        setPersons(arrayContact )
+    if (exist) {      
+      const confirm = window.confirm(`${newName} is already added to phonebook, want update number?`) 
+      
+      if (confirm) {
+        personService
+        .update(exist.id, newPerson)
+        .then( response => {          
+          setPersons( response )
+        })
+        .catch( error => {
+          setMessage(`Information of ${newName} has already been removed from server`)
+          setTypeMessage('err')      
+          setTimeout(() => {
+            setMessage(null)
+          }, 12000);  
+        })
+        setNewName('')
+        setNewNumber('')
         setMessage(`Contact updated ${newName}`)
-        setTypeMessage('upd')
-        clearFields()   
+          setTypeMessage('upd') 
+          setTimeout(() => {
+            setMessage(null)
+          }, 3000); 
+      }
+      return;
+    }
+
+    personService
+      .create(newPerson)
+      .then( response => {
+        setPersons( persons.concat(newPerson) )
+      })
+      .catch( error => {
+        setMessage(`Server error, data not added`)
+        setTypeMessage('err')      
         setTimeout(() => {
           setMessage(null)
-        }, 5000);  
-      }
-    }
-
-    
-  }
-
-  const clearFields = () => {
+        }, 12000);  
+      })
+    console.log(persons)
     setNewName('')
     setNewNumber('')
+    setMessage(`Contact added ${newName}`)
+      setTypeMessage('add') 
+      setTimeout(() => {
+        setMessage(null)
+      }, 3000);      
   }
 
   const handleNameChange = (event) => {
-    setNewName(event.target.value)
+    setNewName( event.target.value )
   }
-
   const handlePhoneChange = (event) => {
-    setNewNumber(event.target.value)
+    setNewNumber( event.target.value )
   }
 
   const handleRemove = (person) => {
     const msgtext = `Delete contact ${person.name} ?` 
     const confirm = window.confirm(msgtext)
-    if (confirm) {      
-      removeContact(person)
+    if (confirm) {     
+
+      personService
+      .remove(person.id)
+      .then( response => {
+        setPersons( persons.filter( p => p.id !== person.id) )
+      })
+      .catch( error => {
+        setMessage(`Information of ${person.name} not exist`)
+        setTypeMessage('err')
+        setTimeout(() => {
+          setMessage(null)
+        }, 5000);  
+      })
       setMessage(`Contact deleted ${person.name}`)
       setTypeMessage('err')
       setTimeout(() => {
         setMessage(null)
-      }, 5000);  
+      }, 3000);  
     }    
   }
 
-  const createContact = (newContact) => {
-    phonebkService
-    .create(newContact)
-    .then( returnedContact => {
-      setPersons( persons.concat( returnedContact) )
-      setMessage(`Contact added ${returnedContact.name}`)
-      setTypeMessage('add')
-      clearFields()  
-      setTimeout(() => {
-        setMessage(null)
-      }, 5000);      
-    })
-    .catch( error => {
-      setMessage(`Server connection failure, could not be added ${newContact.name}`)
-      setTypeMessage('err')
-      setTimeout(() => {
-        setMessage(null)
-      }, 5000);  
-    })
-  }
-
-  const updateContact = (id,person) => {
-    phonebkService
-    .update(id, person)
-    .then( returnContact => {
-      setPersons(persons.map(p => p.id !== id ? p : returnContact))
-    })
-    .catch( error => {
-      setMessage(`Information of ${person.name} has already been removed from server`)
-      setTypeMessage('err')
-      setPersons( persons.filter( p => p.id !== id) )
-      setTimeout(() => {
-        setMessage(null)
-      }, 5000);  
-    })
-  }
-
-  const removeContact = (person) => {
-    phonebkService
-    .remove(person.id)
-    .then(  returnContact => {         
-      setPersons( persons.filter( p => p.id !== person.id) )
-    })
-    .catch( error => {
-      setMessage(`Information of ${person.name} not exist`)
-      setTypeMessage('err')
-      setTimeout(() => {
-        setMessage(null)
-      }, 5000);  
-    })
-  }
-  
-
   return (
-    <div>      
-      <h2>Phonebook</h2>      
-      <Filter persons={persons}/>
-      <h3>Add a new contact</h3>
+    <div>
+      <h2 className='titulo1'>Phonebook</h2>
+
+      <Filter persons={persons} />
+
+      <h3>Add a new</h3>
+
       <PersonForm 
-        addPhone={addPhone} 
+        addPhone={add} 
         newName={newName} 
         newNumber={newNumber}
-        handleNameChange={handleNameChange} 
+        handleNameChange={handleNameChange}
         handlePhoneChange={handlePhoneChange}
-      />
-      <h3>Numbers</h3>
-      <Notification message={message} typeMessage={typeMessage} />
-      {   
-      persons.map( (person) => <Person 
-          key={person.name}           
-          person={person} 
-          handleRemove={()=> handleRemove(person)} />        
-      )
-      }
+      /> 
+
+      <h2 className='titulo2'>Numbers</h2>
+      <Notification message={message} typeMessage={typeMessage}/>
+      <Persons persons={persons} handleRemove={handleRemove}/>
+      
     </div>
-  );
+  )
 }
 
-export default App;
+export default App

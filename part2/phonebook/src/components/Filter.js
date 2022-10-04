@@ -9,7 +9,7 @@ const handleSearchChange = (event) => {
   }
 
   return (
-    <div>
+    <div className='filterbox'>
       filter shown with: <input value={searchName} onChange={handleSearchChange}/>
       <ul>
         {
@@ -17,10 +17,11 @@ const handleSearchChange = (event) => {
           ? persons
              .filter( p => p.name.toLowerCase().includes(searchName.toLowerCase()) )
              .map( p => (
-                  <li key={p.name}> {p.name} {p.number}</li>
+                  <li key={p.name}> {p.name} {p.number}                   
+                  </li>
                   )
               )
-          : <strong>No matches found</strong>
+          : <strong className='msgfilter'>No matches found</strong>
         }
       </ul>
     </div>

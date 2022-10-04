@@ -1,12 +1,13 @@
 import React from 'react'
 
-const Persons = ({ person, handleRemove}) => {
-  return (             
-     <li>{person.name} {person.number}  
-      <button onClick={handleRemove} >Remove</button>        
-     </li>
-                   
+const Person = ({person , handleRemove}) => {
+  return (
+    <li className='personlist'>
+      {person.name} {person.number}      
+      &nbsp;  <button onClick={()=> handleRemove(person)}>Remove</button>           
+     
+    </li>
   )
 }
 
-export default Persons
+export default Person
